@@ -1,0 +1,13 @@
+# Data exports (may contain sensitive business data)
+data/*.csv
+data/*.json
+data/*.xlsx
+!data/.gitkeep
+
+# OS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+*~

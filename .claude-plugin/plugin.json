@@ -1,0 +1,8 @@
+{
+  "name": "atlas",
+  "version": "1.0.0",
+  "description": "ATLAS -- Analysis Toolkit for Leveraging All Sources. Cross-functional business analysis reports with visual charts for Percona teams.",
+  "skills": ["skills/atlas/SKILL.md"],
+  "author": "Percona-Lab",
+  "repository": "https://github.com/Percona-Lab/ATLAS"
+}
