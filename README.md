@@ -1,6 +1,6 @@
-# ATLAS
+# VISTA
 
-**Analysis Toolkit for Leveraging All Sources**
+**Visualized Intelligence from Sources, Trends & Analysis**
 
 A Claude plugin that turns Percona's data catalog into interactive business analysis reports with visual charts. Cross-functional coverage for Product, Sales, Customer Success, Engineering, Delivery Ops, and more.
 
@@ -15,19 +15,19 @@ A Claude plugin that turns Percona's data catalog into interactive business anal
 
 ### One-liner (Claude Code / Cowork)
 ```
-Install this plugin: https://github.com/Percona-Lab/ATLAS
+Install this plugin: https://github.com/Percona-Lab/VISTA
 ```
 
 ### Manual
 ```bash
-git clone https://github.com/Percona-Lab/ATLAS.git
-cp -r ATLAS/.claude-plugin ~/.claude/plugins/atlas/
-cp -r ATLAS/skills ~/.claude/plugins/atlas/
+git clone https://github.com/Percona-Lab/VISTA.git
+cp -r VISTA/.claude-plugin ~/.claude/plugins/vista/
+cp -r VISTA/skills ~/.claude/plugins/vista/
 ```
 
 ## Data Sources
 
-ATLAS reads the Notion data catalog as its primary source of truth for what metrics exist. As MCP connectors are added, ATLAS queries upstream systems directly:
+VISTA reads the Notion data catalog as its primary source of truth for what metrics exist. As MCP connectors are added, VISTA queries upstream systems directly:
 
 | Source System | Status | Data |
 |---|---|---|
@@ -60,11 +60,11 @@ Executive Summary, Regional Performance, Product Line P&L
 ## Plugin Structure
 
 ```
-ATLAS/
+VISTA/
   .claude-plugin/
     plugin.json
   skills/
-    atlas/
+    vista/
       SKILL.md              # Main skill logic
       references/
         data-catalog-schema.md  # Notion catalog schema snapshot
@@ -76,4 +76,4 @@ ATLAS/
 
 ## Part of the Alpine Toolkit
 
-IBEX | PACK | MYNAH | BINER | SHERPA | **ATLAS**
+IBEX | PACK | MYNAH | BINER | SHERPA | **VISTA** | CAIRN

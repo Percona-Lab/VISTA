@@ -1,11 +1,11 @@
-# ATLAS -- Claude Code Instructions
+# VISTA -- Claude Code Instructions
 
-This is the ATLAS plugin repo: Analysis Toolkit for Leveraging All Sources.
+This is the VISTA plugin repo: Visualized Intelligence from Sources, Trends & Analysis.
 
 ## Project Context
-- **Repo**: Percona-Lab/ATLAS (private)
+- **Repo**: Percona-Lab/VISTA (private)
 - **Purpose**: Claude plugin for cross-functional business analysis reports with visual charts
-- **Plugin structure**: `.claude-plugin/plugin.json` + `skills/atlas/SKILL.md` + `skills/atlas/references/`
+- **Plugin structure**: `.claude-plugin/plugin.json` + `skills/vista/SKILL.md` + `skills/vista/references/`
 - **Data**: Notion data catalog (live source of truth), MCP connectors for upstream systems
 
 ## Development Guidelines
@@ -18,8 +18,8 @@ This is the ATLAS plugin repo: Analysis Toolkit for Leveraging All Sources.
 ## File Structure
 ```
 .claude-plugin/plugin.json    -- Plugin metadata
-skills/atlas/SKILL.md         -- Main skill (report generation logic)
-skills/atlas/references/      -- Schema snapshots, chart templates
+skills/vista/SKILL.md         -- Main skill (report generation logic)
+skills/vista/references/      -- Schema snapshots, chart templates
 README.md                     -- GitHub-facing docs
 CLAUDE.md                     -- This file (Claude Code instructions)
 .gitignore                    -- Excludes data/ CSVs
