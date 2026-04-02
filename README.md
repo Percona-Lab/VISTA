@@ -19,13 +19,13 @@ Each report includes summary cards, interactive charts (Recharts or Chart.js), k
 
 ## Installation
 
-### Cowork / Claude Desktop
-VISTA is in the **percona-lab** plugin marketplace. Go to **Plugins** > find VISTA under percona-lab > Install.
-
-Alternatively, download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and upload via **Plugins > Personal > Upload plugin**.
+### Cowork (recommended)
+Download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest), then go to **Plugins > Personal > + > Upload plugin**.
 
 ### Claude Code
 Auto-installed from the percona-lab marketplace. Start asking questions.
+
+> **Note:** Plugins are not available in Claude Desktop Chat mode. Use Cowork or Claude Code.
 
 ## Data Sources
 
