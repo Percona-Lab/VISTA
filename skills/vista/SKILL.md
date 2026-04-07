@@ -114,8 +114,8 @@ The Product/Engineering/Community team publishes weekly high-level status report
 | ServiceNow | (planned) | Support tickets, cases, SLA metrics |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
-| Clickhouse | (planned) | Download stats, telemetry aggregates |
-| Pillars telemetry | (planned) | Feature activation, deployment patterns |
+| Clickhouse | (planned) | Operators usage stats, Pillars telemetry aggregates, Feature activation, deployment patterns |
+| Elasticsearch | (planned) | Download stats |
 | PostHog | (planned) | Docs analytics, user engagement |
 
 **Data freshness rule**: Live MCP connector > Notion sync > Notion catalog. Always state the data source and freshness in report headers. When a connector is not yet available, use the Notion catalog entry to describe the metric and note that live data is pending.
