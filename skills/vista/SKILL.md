@@ -110,15 +110,43 @@ The Product/Engineering/Community team publishes weekly high-level status report
 
 | Source System | MCP Tool | Use For |
 |---|---|---|
+| ClickHouse | `query_clickhouse`, `ch_list_tables`, `ch_describe_table`, `ch_sample_data` | Product telemetry: active instances, version distribution, storage engines, deployment types, CPU arch, cluster metrics |
+| Elasticsearch | `search_elasticsearch`, `es_list_indices`, `es_get_mapping`, `es_sample_data` | Product downloads: downloads by product, package type, OS, components, growth rates |
 | Salesforce | (planned) | Pipeline, bookings, renewals, customer data |
 | ServiceNow | (planned) | Support tickets, cases, SLA metrics |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
-| Clickhouse | (planned) | Download stats, telemetry aggregates |
-| Pillars telemetry | (planned) | Feature activation, deployment patterns |
 | PostHog | (planned) | Docs analytics, user engagement |
 
+**ClickHouse and Elasticsearch** are provided by the `vista-data` MCP server ([Percona-Lab/vista-data-mcp](https://github.com/Percona-Lab/vista-data-mcp)). Both are optional — if not configured, tools return a message saying so. Install instructions are in that repo's README.
+
 **Data freshness rule**: Live MCP connector > Notion sync > Notion catalog. Always state the data source and freshness in report headers. When a connector is not yet available, use the Notion catalog entry to describe the metric and note that live data is pending.
+
+### Telemetry & Downloads Data Source Selection Logic
+
+```
+1. Check available MCP tools:
+   - query_clickhouse available?   → CLICKHOUSE = true
+   - search_elasticsearch available? → ELASTICSEARCH = true
+
+2. Select source for telemetry queries (active instances, versions, storage engines, deployments):
+   - CLICKHOUSE → Use query_clickhouse with SQL
+   - Not available → Use Notion catalog metadata, note that live data requires vista-data MCP server
+
+3. Select source for download queries (product downloads, package types, OS):
+   - ELASTICSEARCH → Use search_elasticsearch with JSON DSL
+   - Not available → Use Notion catalog metadata, note that live data requires vista-data MCP server
+
+4. Schema discovery (do this FIRST when working with a new ClickHouse/ES instance):
+   - ClickHouse: ch_list_tables → ch_describe_table → ch_sample_data
+   - Elasticsearch: es_list_indices → es_get_mapping → es_sample_data
+   - Use schema discovery results to build accurate queries for the actual table/field names
+```
+
+**Always state the source in report headers:**
+- ClickHouse: "Source: ClickHouse (queried: {now})"
+- Elasticsearch: "Source: Elasticsearch (queried: {now})"
+- Catalog only: "Source: Notion Data Catalog (live data pending — install vista-data MCP server)"
 
 ## Report Catalog
 
@@ -141,10 +169,10 @@ These are the standard reports VISTA can generate. Users can request any of thes
 
 ### Product & Engineering
 12. **Feature Demand** -- Top requested features by customer weight, urgency. Bubble chart.
-13. **Download Trends** -- Downloads by product, version, OS, region over time. Multi-line chart.
-14. **Telemetry Adoption** -- Feature activation rates, plugin usage, deployment patterns. Treemap.
+13. **Download Trends** -- Downloads by product, version, OS, region over time. Multi-line chart. **Data source:** Elasticsearch via `search_elasticsearch` (use aggregations with date_histogram on download date, terms on product/OS/package_type). Discover index and fields with `es_list_indices` + `es_get_mapping` first.
+14. **Telemetry Adoption** -- Feature activation rates, plugin usage, deployment patterns. Treemap. **Data source:** ClickHouse via `query_clickhouse` (GROUP BY product, feature/plugin, deployment_type). Discover tables and columns with `ch_list_tables` + `ch_describe_table` first.
 15. **Engineering Velocity** -- Jira throughput, cycle time, bug resolution. Sprint-over-sprint line chart.
-16. **Version Adoption** -- Active instances by version, days since release. Stacked area chart.
+16. **Version Adoption** -- Active instances by version, days since release. Stacked area chart. **Data source:** ClickHouse via `query_clickhouse` (GROUP BY product, version with count of active instances). Discover tables with `ch_list_tables` + `ch_describe_table` first.
 
 ### Delivery Ops
 17. **Resource Utilization** -- SDM/consultant workload, hours by task type. Gantt-style or stacked bar.
@@ -457,7 +485,13 @@ Use when the user needs to share the report, email it, or open it in a browser.
 
 **Natural language queries the user might ask:**
 - "How's our pipeline looking?" -> Pipeline Snapshot (#1)
-- "Show me download trends for MySQL" -> Download Trends (#13) filtered to MySQL
+- "Show me download trends for MySQL" -> Download Trends (#13) filtered to MySQL. Use `search_elasticsearch` with date_histogram + terms agg.
+- "How many active PS 8.4 instances are there?" -> Telemetry Adoption (#14). Use `query_clickhouse` with WHERE product/version filter.
+- "Compare MongoDB vs MySQL downloads this quarter" -> Download Trends (#13). Use `search_elasticsearch` with terms agg on product + date_histogram.
+- "Which storage engines are people using?" -> Telemetry Adoption (#14). Use `query_clickhouse` GROUP BY storage_engine.
+- "Show me deployment types for Percona Server" -> Telemetry Adoption (#14). Use `query_clickhouse` GROUP BY deployment_type WHERE product filter.
+- "Download trends for Valkey since launch" -> Download Trends (#13). Use `search_elasticsearch` with range filter on date.
+- "What's the version distribution for PXC?" -> Version Adoption (#16). Use `query_clickhouse` GROUP BY version WHERE product = PXC.
 - "Which accounts are at risk of churning?" -> Churn Risk Dashboard (#7)
 - "What's engineering working on?" -> Team Status Dashboard (#23)
 - "What's the MySQL team working on?" -> Team Status Dashboard (#23) filtered to MySQL
