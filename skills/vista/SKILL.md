@@ -188,7 +188,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 ### Product Team → Jira Project Keys
 | Team | Project Keys | Description |
 |---|---|---|
-| MySQL | PS, MYR, PXB, DISTMYSQL, PSQLADM | Percona Server for MySQL, MySQL Roadmap, XtraBackup, Distribution, ProxySQL |
+| MySQL | PS, PXB, DISTMYSQL, PSQLADM | Percona Server for MySQL, XtraBackup, Distribution, ProxySQL |
 | PXC | PXC | Percona XtraDB Cluster |
 | MongoDB | PSMDB, PBM | Percona Server for MongoDB and Backup |
 | PMM | PMM | Percona Monitoring and Management |
@@ -243,16 +243,16 @@ Some teams maintain additional Notion databases with release/milestone context. 
 
 ```
 # Active work for a team (replace project keys as needed)
-project in (PS, MYR, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
+project in (PS, DISTMYSQL) AND status != Done AND status != Closed ORDER BY priority DESC
 
 # Blockers
 project in (PS, K8SPS) AND priority = Blocker AND status != Done
 
 # What shipped in a specific sprint (use actual sprint name from data)
-project in (PS, MYR, DISTMYSQL) AND sprint = "MySQL Sprint March 2026" AND status in (Done, Closed)
+project in (PS, DISTMYSQL) AND sprint = "MySQL Sprint March 2026" AND status in (Done, Closed)
 
 # What shipped in the last closed sprint (auto-detect)
-project in (PS, MYR, DISTMYSQL) AND sprint in closedSprints() AND status in (Done, Closed) ORDER BY updated DESC
+project in (PS, DISTMYSQL) AND sprint in closedSprints() AND status in (Done, Closed) ORDER BY updated DESC
 
 # Recently completed (fallback when no sprint data)
 project in (PS, K8SPS) AND status changed to Done AFTER -7d

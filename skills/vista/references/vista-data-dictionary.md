@@ -28,7 +28,7 @@ Single source of truth for how every Percona product maps across all three data 
 | Canonical Name | Abbr | ES `parsed.product` | CH `product_family` | Jira Project Keys | Team | Status |
 |---|---|---|---|---|---|---|
 | Percona Server for MySQL | PS | `mysql-server` | `ps` | PS, DISTMYSQL | MySQL | Active |
-| MySQL Roadmap | MYR | n/a | n/a | MYR | MySQL | Active (planning/roadmap) |
+| MySQL Roadmap | MYR | n/a | n/a | MYR | MySQL | **ARCHIVED** — Jira Product Discovery, no longer in use |
 | Percona XtraDB Cluster | PXC | `pxc` | `pxc` | PXC | PXC | Active |
 | Percona XtraBackup | PXB | `xtrabackup` | n/a (no telemetry) | PXB | MySQL | Active |
 | Percona Toolkit | PT | `toolkit` | n/a (no telemetry) | PT | MySQL | Active |
