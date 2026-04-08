@@ -188,7 +188,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 ### Product Team → Jira Project Keys
 | Team | Project Keys | Description |
 |---|---|---|
-| MySQL | PS, MYR, DISTMYSQL | Percona Server for MySQL, MySQL Router, Distribution |
+| MySQL | PS, MYR, PXB, DISTMYSQL, PSQLADM | Percona Server for MySQL, MySQL Roadmap, XtraBackup, Distribution, ProxySQL |
 | PXC | PXC | Percona XtraDB Cluster |
 | MongoDB | PSMDB, PBM | Percona Server for MongoDB and Backup |
 | PMM | PMM | Percona Monitoring and Management |
@@ -196,7 +196,9 @@ These are the standard reports VISTA can generate. Users can request any of thes
 | Operators | K8SPS, K8SPXC, K8SPSMDB, K8SPG | All Kubernetes Operators (MySQL, PXC, MongoDB, PostgreSQL) |
 | ClusterSync | PCSM | ClusterSync for MongoDB |
 | Percona Toolkit | PT | Percona Toolkit |
+| Valkey | VK | Valkey (early stage) |
 | Packaging | PKG | Build and packaging infrastructure |
+| Docs | DOCS | Documentation |
 | Docs | DOCS | Documentation |
 
 **IMPORTANT**: Always group and label by **team name** (e.g. "MySQL"), never by raw project key (e.g. "PS"). Roll up all project keys for a team into a single group. Project keys not in the table above get their own group named after the key.
