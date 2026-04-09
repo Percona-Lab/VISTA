@@ -111,9 +111,12 @@ The Product/Engineering/Community team publishes weekly high-level status report
 Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server. The server is hosted on SHERPA and requires Percona VPN.
 
 **MISSING MCP SERVER**: Before attempting any telemetry or download query, check if the `query_clickhouse` or `search_elasticsearch` tools are available. If they are NOT available, tell the user:
-"This query requires the vista-data MCP server, which is not installed. To set it up:
-1. **Quickest (remote, recommended):** Connect to Percona VPN and add this to your Claude Code settings (`~/.claude/settings.json`) under `mcpServers`: `"vista-data": {"type": "sse", "url": "http://10.30.50.182:8400/sse"}`
-2. **Full install:** Run `uv run installer.py` from https://github.com/Percona-Lab/vista-data-mcp"
+"This query requires the vista-data MCP server, which is not installed. Run the installer to set it up:
+```
+uv run https://raw.githubusercontent.com/Percona-Lab/vista-data-mcp/main/installer.py
+```
+It takes about 30 seconds — just choose Remote (default) and you're done. Requires Percona VPN when querying.
+See https://github.com/Percona-Lab/vista-data-mcp for details."
 Do NOT attempt to run the query without the tools. Do NOT hallucinate results.
 
 **VPN / CONNECTION ERRORS**: If a telemetry or download query fails with a connection error, timeout, or the MCP server is shown as disconnected, tell the user: "The telemetry and download data server requires the Percona VPN. Please connect to VPN and try again." Do NOT retry repeatedly — one failure is enough to diagnose the issue. Non-telemetry reports (Jira, Notion, Slack) work without VPN.
