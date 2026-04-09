@@ -114,7 +114,7 @@ Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (dow
 1. Tell the user: "This query requires the vista-data connection, which isn't set up yet. I can configure it for you — it just requires Percona VPN when querying. Want me to add it?"
 2. If the user agrees, add this entry to their `~/.claude/settings.json` under `mcpServers`:
    ```json
-   "vista-data": {"type": "sse", "url": "http://10.30.50.182:8400/sse"}
+   "vista-data": {"type": "sse", "url": "http://sherpa.int.percona.com:8400/sse"}
    ```
    Also add `"mcp__vista-data__*"` to the `permissions.allow` array so tools don't require approval each time.
 3. Tell the user to restart Claude Code for the new MCP to load, then re-run their query.
