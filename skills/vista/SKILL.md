@@ -108,7 +108,9 @@ The Product/Engineering/Community team publishes weekly high-level status report
 
 ### Telemetry & Download Data: vista-data MCP Server (LIVE)
 
-Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server.
+Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server. The server is hosted on SHERPA and requires Percona VPN.
+
+**VPN REQUIRED**: If a telemetry or download query fails with a connection error or timeout, tell the user: "The telemetry and download data server is only available on the Percona VPN. Please connect to VPN and try again." Do NOT retry repeatedly — one failure is enough to diagnose VPN as the issue. Non-telemetry reports (Jira, Notion, Slack) work without VPN.
 
 **IMPORTANT: Before writing any telemetry or download query, read the data dictionary reference file `references/vista-data-dictionary.md`. It contains the complete schema, field values, access patterns, and pre-built query templates. Do NOT call discovery tools (`es_list_indices`, `es_get_mapping`, `ch_list_databases`, `ch_list_tables`, `ch_describe_table`) — go straight to the query using the reference.**
 
