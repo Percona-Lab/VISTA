@@ -110,13 +110,14 @@ The Product/Engineering/Community team publishes weekly high-level status report
 
 Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (download analytics) via the `vista-data` MCP server. The server is hosted on SHERPA and requires Percona VPN.
 
-**MISSING MCP SERVER**: Before attempting any telemetry or download query, check if the `query_clickhouse` or `search_elasticsearch` tools are available. If they are NOT available, tell the user:
-"This query requires the vista-data MCP server, which is not installed. Run the installer to set it up:
-```
-uv run https://raw.githubusercontent.com/Percona-Lab/vista-data-mcp/main/installer.py
-```
-It takes about 30 seconds — just choose Remote (default) and you're done. Requires Percona VPN when querying.
-See https://github.com/Percona-Lab/vista-data-mcp for details."
+**MISSING MCP SERVER**: Before attempting any telemetry or download query, check if the `query_clickhouse` or `search_elasticsearch` tools are available. If they are NOT available:
+1. Tell the user: "This query requires the vista-data connection, which isn't set up yet. I can configure it for you — it just requires Percona VPN when querying. Want me to add it?"
+2. If the user agrees, add this entry to their `~/.claude/settings.json` under `mcpServers`:
+   ```json
+   "vista-data": {"type": "sse", "url": "http://10.30.50.182:8400/sse"}
+   ```
+   Also add `"mcp__vista-data__*"` to the `permissions.allow` array so tools don't require approval each time.
+3. Tell the user to restart Claude Code for the new MCP to load, then re-run their query.
 Do NOT attempt to run the query without the tools. Do NOT hallucinate results.
 
 **VPN / CONNECTION ERRORS**: If a telemetry or download query fails with a connection error, timeout, or the MCP server is shown as disconnected, tell the user: "The telemetry and download data server requires the Percona VPN. Please connect to VPN and try again." Do NOT retry repeatedly — one failure is enough to diagnose the issue. Non-telemetry reports (Jira, Notion, Slack) work without VPN.
