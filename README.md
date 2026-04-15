@@ -33,24 +33,21 @@ VISTA is a reporting layer on top of **your workspace's connectors**. Enable the
 
 ### Step 2 — Install the VISTA plugin (required)
 
-The plugin contains the report layouts, chart templates, and data dictionary — it's what makes Claude generate VISTA-style dashboards.
+**Cowork (recommended)** — in Cowork, go to **Customize > Personal plugins > + > Add marketplace**, enter `Percona-Lab/claude-plugins`, click **Sync**, then enable **Vista**. You'll get auto-updates.
 
-- **Cowork (recommended)** — download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest), then **Plugins > Personal > + > Upload plugin**.
-- **Claude Code** — auto-installed from the `Percona-Lab/claude-plugins` marketplace.
+**Claude Code** — auto-installed from the `Percona-Lab/claude-plugins` marketplace.
+
+**Manual** — download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and upload via **Plugins > Personal > + > Upload plugin**.
 
 > Plugins are not available in Claude Desktop Chat mode. Use Cowork or Claude Code.
 
-### Step 3 — Install the data MCP (optional — only if you want telemetry or download reports)
+### Step 3 — Install the data MCP (optional — only for telemetry/download reports, VPN required)
 
-**Skip this step unless you need ClickHouse/Elasticsearch data.** The data MCP is only used by telemetry and download reports (active instances, version distribution, download trends, etc.). All Jira / Notion / Slack reports work fine without it.
-
-- Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**.
-- **Requires the Percona VPN when you run a telemetry/download query** (the MCP proxies to an internal SHERPA host). No VPN → VISTA will show a friendly "connect to VPN" message instead of an error.
-- VPN is only needed to *query* — not for installation.
+Skip this step unless you need ClickHouse/Elasticsearch data. Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**.
 
 ### Verify
 
-Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?"). For telemetry, try "how many active instances of each product do we have?" while on VPN.
+Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?").
 
 ## Data Sources
 
