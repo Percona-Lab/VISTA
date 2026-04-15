@@ -45,6 +45,12 @@ VISTA is a reporting layer on top of **your workspace's connectors**. Enable the
 
 Skip this step unless you need ClickHouse/Elasticsearch data. Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**.
 
+### Step 4 — Install the ServiceNow MCP (optional, prototype — only for support/SLA reports)
+
+Skip this step unless you need support ticket or SLA data. Download `prototype-SN.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. You'll be prompted for your Percona ServiceNow username and password (stored securely in the OS keychain). Works in both **Cowork** and **Claude Desktop**.
+
+> This connector is an early prototype — the hostname is hardcoded to `perconadev.service-now.com` and tool coverage is limited to incidents, problems, change requests, service requests, and knowledge articles.
+
 ### Verify
 
 Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?").
@@ -58,8 +64,8 @@ Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?")
 | Slack | **Live** | Signal detection, team sentiment |
 | Google Drive | **Live** | Reports, shared analysis |
 | Salesforce | Planned (v2) | Pipeline, bookings, renewals |
-| ServiceNow | Planned (v2) | Support tickets, SLAs |
-| Clickhouse | Planned (v2) | Download stats, telemetry |
+| ServiceNow | **Live** (optional MCP) | Support tickets, incidents, change requests, SLAs |
+| Clickhouse | **Live** (optional MCP) | Download stats, telemetry |
 | PostHog | Planned (v2) | Docs analytics |
 
 ## Roadmap
@@ -68,7 +74,7 @@ Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?")
 4 reports from live Jira data. Team status, workload, dependencies, cross-team feed.
 
 **v2 — Business Analytics**
-22 additional report types across Sales, Customer Success, Product, Delivery Ops, and Cross-Functional. Waiting on Salesforce, ServiceNow, and Clickhouse MCP connectors.
+22 additional report types across Sales, Customer Success, Product, Delivery Ops, and Cross-Functional. Clickhouse and ServiceNow MCPs are live; waiting on the Salesforce connector.
 
 **v3 — Customer Telemetry Portal**
 Public-facing branch with read-only access to anonymized Clickhouse telemetry. Customers query download trends, version adoption, feature usage, and deployment patterns in natural language. No internal data exposed.

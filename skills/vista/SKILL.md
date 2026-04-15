@@ -21,6 +21,11 @@ Before planning any query, check which tools you actually have:
   Details: https://github.com/Percona-Lab/vista-data-mcp"
 
   Do NOT plan queries, show SQL, or waste tokens — just deliver the error message above and stop.
+- **Support / SLA / incident queries** need `sn_query_table`, `sn_get_record`, or `sn_list_common_tables`. If these tools are not available, STOP IMMEDIATELY and tell the user exactly this:
+
+  "This query requires the **vista-servicenow** MCP server (prototype), which is not installed. Download `prototype-SN.mcpb` from https://github.com/Percona-Lab/VISTA/releases/latest and open it. You'll be prompted for your Percona ServiceNow credentials (stored securely in the OS keychain). Then restart Claude Desktop."
+
+  Do NOT plan queries or guess ticket counts — just deliver the error message above and stop.
 - **Engineering queries** need the Jira/Notion connectors (Atlassian MCP).
 - **Highlight/summary queries** need Slack and Notion connectors.
 - **Feature/component/extension name lookups** (e.g., MySQL component URNs like `component_js_lang`, PG extension names, MongoDB feature flags) should be verified via the **`percona-dk`** MCP (`search_percona_docs`, `get_percona_doc`). If `search_percona_docs` is NOT available, show this banner at the top of the report and in any section that filters on a named feature/component/extension:
@@ -151,12 +156,32 @@ Direct read-only access to ClickHouse (product telemetry) and Elasticsearch (dow
 - **CH products**: `postgresql`, `ps` (MySQL), `psmdb` (MongoDB), `pxc` (XtraDB Cluster)
 - **Unique instances**: Use `uniqExact(host_instance_id)`, not `count()`
 
+### Support & Incident Data: vista-servicenow MCP Server (LIVE)
+
+Direct read-only access to Percona's ServiceNow instance (`perconadev.service-now.com`) via the `vista-servicenow` MCP server. Each user authenticates with their own ServiceNow credentials — results respect the authenticated user's ACLs.
+
+| Tool | Use For |
+|---|---|
+| `sn_query_table` | Querying any table with encoded-query filters — incidents, problems, changes, requests, knowledge |
+| `sn_get_record` | Fetching a single record by `sys_id` with all fields expanded |
+| `sn_list_common_tables` | Discovering which tables VISTA reports typically use |
+
+**Common tables**: `incident`, `problem`, `change_request`, `sc_request`, `sc_req_item`, `sc_task`, `kb_knowledge`.
+
+**Encoded query tips**:
+- `active=true` — open records only
+- `priority=1` / `priority=2` — P1 / P2
+- `state=-1` — New state (varies by table; use `sn_get_record` once to confirm numeric state values)
+- `sys_created_on>=javascript:gs.daysAgoStart(30)` — last 30 days
+- Combine with `^` (AND) and `^OR`, e.g. `active=true^priority=1^assignment_group.nameLIKEMySQL`
+
+**Response size**: default field set is narrow (number, short_description, priority, state, assigned_to, opened_at, sys_updated_on, category) and default limit is 10. Override `fields` and `limit` (max 100) when a report needs more.
+
 ### Other MCP Connectors
 
 | Source System | MCP Tool | Use For |
 |---|---|---|
 | Salesforce | (planned) | Pipeline, bookings, renewals, customer data |
-| ServiceNow | (planned) | Support tickets, cases, SLA metrics |
 | Slack | slack_search_public, slack_read_channel | Signal detection, team sentiment |
 | Google Drive | google_drive_search, google_drive_fetch | Reports, docs, shared analysis |
 | PostHog | (planned) | Docs analytics, user engagement |
