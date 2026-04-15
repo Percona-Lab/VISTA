@@ -19,33 +19,38 @@ Each report includes summary cards, interactive charts (Recharts or Chart.js), k
 
 ## Installation
 
-VISTA has two components — a **plugin** (skill + report logic) and a **data MCP** (telemetry + download access) — plus it relies on your workspace connectors for Jira, Notion, and Slack data. Install all three layers:
+### Step 1 — Enable workspace connectors (required)
 
-### 1. Install the plugin
+VISTA is a reporting layer on top of **your workspace's connectors**. Enable these in Cowork (**Connectors** sidebar) or in your Claude Code MCP config **before installing VISTA**, or every report will return empty.
 
-**Cowork (recommended)** — download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest), then go to **Plugins > Personal > + > Upload plugin**.
-
-**Claude Code** — auto-installed from the percona-lab marketplace.
-
-> **Note:** Plugins are not available in Claude Desktop Chat mode. Use Cowork or Claude Code.
-
-### 2. Install the data MCP (for telemetry + downloads)
-
-Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**. Requires the Percona VPN for the default (remote) mode. If you skip this step, Jira / Notion / Slack reports still work, but ClickHouse and Elasticsearch queries will not.
-
-### 3. Enable workspace connectors
-
-VISTA depends on live connectors for most of its reports. Enable these in your workspace settings **before using VISTA**, or reports will return empty or stop with a "connector not available" message:
-
-| Connector | Required for | Where to enable |
+| Connector | Required? | Powers |
 |---|---|---|
-| **Atlassian (Jira)** | Engineering Visibility reports — team status, workload, dependencies, what shipped | Cowork: **Connectors > Atlassian** (log into `perconadev.atlassian.net`). Claude Code: Atlassian MCP. |
-| **Notion** | Data catalog lookups, Jira sync fallback, weekly team status highlights | Cowork: **Connectors > Notion** (log into the Percona workspace). Claude Code: Notion MCP. |
-| **Slack** | Signal detection, team sentiment, highlight summaries | Cowork: **Connectors > Slack** (log into the Percona workspace). Claude Code: Slack MCP. |
-| **Google Drive** (optional) | Pulling linked docs and shared analysis referenced in reports | Cowork: **Connectors > Google Drive**. |
-| **percona-dk** (optional) | Verifying feature/component/extension names against Percona docs | Install the `percona-dk` MCP — without it, VISTA shows a warning banner on reports that filter on named features. |
+| **Atlassian (Jira)** | **Required** | Every engineering report — team status, workload, dependencies, what shipped |
+| **Notion** | **Required** | Data catalog lookups, Jira sync fallback, weekly team status highlights |
+| **Slack** | **Required** | Highlights, signal detection, team sentiment |
+| **Google Drive** | Optional | Pulling linked docs referenced in reports |
+| **percona-dk** | Optional | Verifying feature/component/extension names against Percona docs (without it, VISTA shows a warning banner on reports that filter on named features) |
 
-After enabling connectors, reopen VISTA and run a quick sanity query (e.g., "what is the MySQL team working on?") to confirm everything is wired up.
+### Step 2 — Install the VISTA plugin (required)
+
+The plugin contains the report layouts, chart templates, and data dictionary — it's what makes Claude generate VISTA-style dashboards.
+
+- **Cowork (recommended)** — download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest), then **Plugins > Personal > + > Upload plugin**.
+- **Claude Code** — auto-installed from the `Percona-Lab/claude-plugins` marketplace.
+
+> Plugins are not available in Claude Desktop Chat mode. Use Cowork or Claude Code.
+
+### Step 3 — Install the data MCP (optional — only if you want telemetry or download reports)
+
+**Skip this step unless you need ClickHouse/Elasticsearch data.** The data MCP is only used by telemetry and download reports (active instances, version distribution, download trends, etc.). All Jira / Notion / Slack reports work fine without it.
+
+- Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**.
+- **Requires the Percona VPN when you run a telemetry/download query** (the MCP proxies to an internal SHERPA host). No VPN → VISTA will show a friendly "connect to VPN" message instead of an error.
+- VPN is only needed to *query* — not for installation.
+
+### Verify
+
+Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?"). For telemetry, try "how many active instances of each product do we have?" while on VPN.
 
 ## Data Sources
 
