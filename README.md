@@ -4,9 +4,9 @@
 
 A Claude plugin for Percona business and engineering metrics. Ask questions in natural language, get interactive dashboards with live data.
 
-## What's live now (v1)
+## What's live now
 
-**Engineering Visibility** — cross-team visibility into what every product team is working on, powered by live Jira data. No dashboards to build, no Jira filters to maintain. Just ask.
+**Engineering Visibility** — cross-team visibility into what every product team is working on, powered by live Jira data.
 
 | Report | Try this prompt |
 |---|---|
@@ -14,6 +14,21 @@ A Claude plugin for Percona business and engineering metrics. Ask questions in n
 | **Cross-Team Communication Feed** | "What shipped this week across Percona?" |
 | **Workload & Capacity** | "How loaded is the MySQL team?" |
 | **Cross-Team Dependencies** | "Where are teams waiting on each other?" |
+
+**Telemetry & Download Analytics** — live ClickHouse + Elasticsearch data for product adoption and download trends (requires the vista-data MCP + VPN).
+
+| Report | Try this prompt |
+|---|---|
+| **Active instance summary** | "How many active instances of each product do we have?" |
+| **Version distribution** | "What MySQL versions are deployed in production?" |
+| **Download trends** | "How are MySQL downloads trending month over month?" |
+| **Geographic distribution** | "Which countries download the most MongoDB packages?" |
+
+**Cascade KPI Tracker** — goal-tracking dashboard with status badge, on-track projection vs target, and supporting signals.
+
+| Report | Try this prompt |
+|---|---|
+| **MySQL Cascade KPI** | "Show me the MySQL Cascade KPI" (PS anchor + PXC supporting panel) |
 
 Each report includes summary cards, interactive charts (Recharts or Chart.js), key findings, and data source attribution. Say "generate html" for a shareable file you can email or open in a browser.
 
@@ -73,25 +88,46 @@ Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?")
 **v1 — Engineering Visibility** (live)
 4 reports from live Jira data. Team status, workload, dependencies, cross-team feed.
 
+**v1.5 — Telemetry & Download Analytics** (live)
+ClickHouse + Elasticsearch via the vista-data MCP. Product adoption, version distribution, download trends, geographic breakdown.
+
+**v1.6 — Cascade KPI Tracker** (live)
+Goal-tracking dashboard. MySQL Cascade KPI ships with PS anchor + PXC supporting panel.
+
+**v1.7 — ServiceNow integration** (prototype)
+Optional MCP for support tickets, incidents, and change requests.
+
 **v2 — Business Analytics**
-22 additional report types across Sales, Customer Success, Product, Delivery Ops, and Cross-Functional. Clickhouse and ServiceNow MCPs are live; waiting on the Salesforce connector.
+22 additional report types across Sales, Customer Success, Product, Delivery Ops, and Cross-Functional. ClickHouse and ServiceNow MCPs are live; waiting on the Salesforce connector.
+
+**v2.1 — Plugin Auto-Update** (planned)
+Marketplace plugins currently require a manual resync to pick up new versions. Need auto-update or at least an update notification. Affects all Alpine Toolkit plugins.
 
 **v3 — Customer Telemetry Portal**
-Public-facing branch with read-only access to anonymized Clickhouse telemetry. Customers query download trends, version adoption, feature usage, and deployment patterns in natural language. No internal data exposed.
+Public-facing branch with read-only access to anonymized ClickHouse telemetry. Customers query download trends, version adoption, feature usage, and deployment patterns in natural language. No internal data exposed.
 
-## Report Catalog (26 total)
+## Report Catalog
 
-### Engineering Visibility (v1 — live)
+### Engineering Visibility (live)
 Team Status Dashboard, Cross-Team Dependencies, Workload & Capacity, Cross-Team Communication Feed
 
-### Sales & Revenue (v2)
+### Product & Engineering — Telemetry (live)
+Active Instance Summary, Version Distribution, Deployment Method Breakdown, Cloud Provider Distribution, CPU Architecture Split, Geographic Distribution, Instances-per-Host
+
+### Product & Engineering — Downloads (live)
+Downloads by Product, Downloads by Package Type, Version Adoption (downloads), Geographic Distribution, OS/Arch Breakdown, EOL Package Tracking, Monthly Trend
+
+### Cascade KPI Tracker (live)
+MySQL Cascade KPI (PS anchor + PXC supporting panel)
+
+### Sales & Revenue (v2 — planned, waiting on Salesforce MCP)
 Pipeline Snapshot, Bookings Trend, Win/Loss Analysis, Renewal Forecast, ACV Distribution, SAL Conversion
 
-### Customer Success (v2)
+### Customer Success (v2 — partially live via ServiceNow prototype)
 Churn Risk Dashboard, NPS Trend, Support Load, Customer Health Score, TAM Utilization
 
-### Product & Engineering (v2)
-Feature Demand, Download Trends, Telemetry Adoption, Engineering Velocity, Version Adoption
+### Product & Engineering — Business Analytics (v2)
+Feature Demand, Engineering Velocity
 
 ### Delivery Ops (v2)
 Resource Utilization, Project Status, Time Tracking
@@ -107,11 +143,13 @@ VISTA/
     plugin.json
   skills/
     vista/
-      SKILL.md                        # Main skill logic
+      SKILL.md                        # Main skill logic (report layouts, triggers)
       references/
-        engineering-visibility.md     # JQL patterns, layouts, data processing
-        data-catalog-schema.md        # Notion catalog schema snapshot
+        engineering-visibility.md     # JQL patterns, team/project mapping, layouts
+        vista-data-dictionary.md      # ClickHouse + Elasticsearch schema + query templates
+        cascade-kpi-mysql.md          # MySQL Cascade KPI queries + GSM framework
         chart-templates.md            # React + HTML chart templates
+        data-catalog-schema.md        # Notion catalog schema snapshot
   README.md
   CLAUDE.md
   .gitignore
