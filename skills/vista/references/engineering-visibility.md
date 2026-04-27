@@ -228,7 +228,7 @@ Query issues where Status = Done/Closed AND Updated >= {days ago}. **Warning**: 
 - **Group by TEAM, not by project key.** Roll up project keys into teams using the mapping from SKILL.md:
   - MySQL: PS, DISTMYSQL
   - PXC: PXC
-  - MongoDB: PSMDB, PBM
+  - MongoDB: PSMDB, PBM, PCSM
   - PMM: PMM
   - PostgreSQL: PG, DISTPG
   - Operators: K8SPS, K8SPXC, K8SPSMDB, K8SPG
