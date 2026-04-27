@@ -1,160 +1,98 @@
-# VISTA
+# VISTA — Beta Channel (v2.0 beta.1)
 
-**Visualized Intelligence from Sources, Trends & Analysis**
+> **This branch is the beta channel of the VISTA Claude plugin.** Stable Vista lives on `main`. This branch ships as a separate plugin (`vista-beta`) so it can be installed alongside stable Vista in the same Claude Desktop instance.
 
-A Claude plugin for Percona business and engineering metrics. Ask questions in natural language, get interactive dashboards with live data.
+VISTA — Visualized Intelligence from Sources, Trends & Analysis — is a Claude plugin that runs cross-functional business analysis reports for Percona teams. The beta channel adds:
 
-## What's live now
-
-**Engineering Visibility** — cross-team visibility into what every product team is working on, powered by live Jira data.
-
-| Report | Try this prompt |
-|---|---|
-| **Team Status Dashboard** | "What's the MySQL team working on?" |
-| **Cross-Team Communication Feed** | "What shipped this week across Percona?" |
-| **Workload & Capacity** | "How loaded is the MySQL team?" |
-| **Cross-Team Dependencies** | "Where are teams waiting on each other?" |
-
-**Telemetry & Download Analytics** — live ClickHouse + Elasticsearch data for product adoption and download trends (requires the vista-data MCP + VPN).
-
-| Report | Try this prompt |
-|---|---|
-| **Active instance summary** | "How many active instances of each product do we have?" |
-| **Version distribution** | "What MySQL versions are deployed in production?" |
-| **Download trends** | "How are MySQL downloads trending month over month?" |
-| **Geographic distribution** | "Which countries download the most MongoDB packages?" |
-
-**Cascade KPI Tracker** — goal-tracking dashboard with status badge, on-track projection vs target, and supporting signals.
-
-| Report | Try this prompt |
-|---|---|
-| **MySQL Cascade KPI** | "Show me the MySQL Cascade KPI" (PS anchor + PXC supporting panel) |
-
-Each report includes summary cards, interactive charts (Recharts or Chart.js), key findings, and data source attribution. Say "generate html" for a shareable file you can email or open in a browser.
+- **Percona-branded HTML artifact pipeline.** Every report renders with the Percona wordmark in the header, dark-theme tokens, the four-color product-accent system (mysql / postgresql / mongodb / kubernetes / valkey / pmm / redis), and a consistent shell across every report type.
+- **Six chart primitives** — `Vista.renderTrendLine`, `Vista.renderStackedHBar`, `Vista.renderDonut`, `Vista.renderVersionBars`, `Vista.renderFunnel`, `Vista.renderHeatmap` — all hand-rolled SVG with hover tooltips, theme-aware colors, and re-render-on-theme-flip.
+- **Print-friendly PDF export.** Print stylesheet keeps cards intact across page breaks, forces dark backgrounds to print correctly, and clips chart overflow so axis labels can't bleed into adjacent elements.
+- **Cowork artifact mechanism.** Reports are delivered as type-`text/html` artifacts via Cowork's artifact tool, producing pinnable + downloadable Live Artifacts in the right pane.
+- **Sticky theme + accent preference** — `Vista.setTheme(theme, accent)` flips both with chart re-render in one frame; preference persists via `pack memory_update` (key `vista_beta_theme_preference`).
 
 ## Installation
 
-### Step 1 — Enable workspace connectors (required)
-
-VISTA is a reporting layer on top of **your workspace's connectors**. Enable these in Cowork (**Connectors** sidebar) or in your Claude Code MCP config **before installing VISTA**, or every report will return empty.
-
-| Connector | Required? | Powers |
-|---|---|---|
-| **Atlassian (Jira)** | **Required** | Every engineering report — team status, workload, dependencies, what shipped |
-| **Notion** | **Required** | Data catalog lookups, Jira sync fallback, weekly team status highlights |
-| **Slack** | **Required** | Highlights, signal detection, team sentiment |
-| **Google Drive** | Optional | Pulling linked docs referenced in reports |
-| **percona-dk** | Optional | Verifying feature/component/extension names against Percona docs (without it, VISTA shows a warning banner on reports that filter on named features) |
-
-### Step 2 — Install the VISTA plugin (required)
-
-**Cowork (recommended)** — in Cowork, go to **Customize > Personal plugins > + > Add marketplace**, enter `Percona-Lab/claude-plugins`, click **Sync**, then enable **Vista**. You'll get auto-updates.
-
-**Claude Code** — auto-installed from the `Percona-Lab/claude-plugins` marketplace.
-
-**Manual** — download `vista-plugin.zip` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and upload via **Plugins > Personal > + > Upload plugin**.
-
-> Plugins are not available in Claude Desktop Chat mode. Use Cowork or Claude Code.
-
-### Step 3 — Install the data MCP (optional — only for telemetry/download reports, VPN required)
-
-Skip this step unless you need ClickHouse/Elasticsearch data. Download `vista-data.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. Works in both **Cowork** and **Claude Desktop**.
-
-### Step 4 — Install the ServiceNow MCP (optional, prototype — only for support/SLA reports)
-
-Skip this step unless you need support ticket or SLA data. Download `prototype-SN.mcpb` from the [latest release](https://github.com/Percona-Lab/VISTA/releases/latest) and open it. You'll be prompted for your Percona ServiceNow username and password (stored securely in the OS keychain). Works in both **Cowork** and **Claude Desktop**.
-
-> This connector is an early prototype — the hostname is hardcoded to `perconadev.service-now.com` and tool coverage is limited to incidents, problems, change requests, service requests, and knowledge articles.
-
-### Verify
-
-Reopen VISTA and run a sanity query (e.g., "what is the MySQL team working on?").
-
-## Data Sources
-
-| Source | Status | Powers |
-|---|---|---|
-| Jira | **Live** | Engineering Visibility reports (team status, workload, dependencies, completions) |
-| Notion Data Catalog | **Live** | Metric definitions, formulas, ownership, segmentation |
-| Slack | **Live** | Signal detection, team sentiment |
-| Google Drive | **Live** | Reports, shared analysis |
-| Salesforce | Planned (v2) | Pipeline, bookings, renewals |
-| ServiceNow | **Live** (optional MCP) | Support tickets, incidents, change requests, SLAs |
-| Clickhouse | **Live** (optional MCP) | Download stats, telemetry |
-| PostHog | Planned (v2) | Docs analytics |
-
-## Roadmap
-
-**v1 — Engineering Visibility** (live)
-4 reports from live Jira data. Team status, workload, dependencies, cross-team feed.
-
-**v1.5 — Telemetry & Download Analytics** (live)
-ClickHouse + Elasticsearch via the vista-data MCP. Product adoption, version distribution, download trends, geographic breakdown.
-
-**v1.6 — Cascade KPI Tracker** (live)
-Goal-tracking dashboard. MySQL Cascade KPI ships with PS anchor + PXC supporting panel.
-
-**v1.7 — ServiceNow integration** (prototype)
-Optional MCP for support tickets, incidents, and change requests.
-
-**v2 — Business Analytics**
-22 additional report types across Sales, Customer Success, Product, Delivery Ops, and Cross-Functional. ClickHouse and ServiceNow MCPs are live; waiting on the Salesforce connector.
-
-**v2.1 — Plugin Auto-Update** (planned)
-Marketplace plugins currently require a manual resync to pick up new versions. Need auto-update or at least an update notification. Affects all Alpine Toolkit plugins.
-
-**v3 — Customer Telemetry Portal**
-Public-facing branch with read-only access to anonymized ClickHouse telemetry. Customers query download trends, version adoption, feature usage, and deployment patterns in natural language. No internal data exposed.
-
-## Report Catalog
-
-### Engineering Visibility (live)
-Team Status Dashboard, Cross-Team Dependencies, Workload & Capacity, Cross-Team Communication Feed
-
-### Product & Engineering — Telemetry (live)
-Active Instance Summary, Version Distribution, Deployment Method Breakdown, Cloud Provider Distribution, CPU Architecture Split, Geographic Distribution, Instances-per-Host
-
-### Product & Engineering — Downloads (live)
-Downloads by Product, Downloads by Package Type, Version Adoption (downloads), Geographic Distribution, OS/Arch Breakdown, EOL Package Tracking, Monthly Trend
-
-### Cascade KPI Tracker (live)
-MySQL Cascade KPI (PS anchor + PXC supporting panel)
-
-### Sales & Revenue (v2 — planned, waiting on Salesforce MCP)
-Pipeline Snapshot, Bookings Trend, Win/Loss Analysis, Renewal Forecast, ACV Distribution, SAL Conversion
-
-### Customer Success (v2 — partially live via ServiceNow prototype)
-Churn Risk Dashboard, NPS Trend, Support Load, Customer Health Score, TAM Utilization
-
-### Product & Engineering — Business Analytics (v2)
-Feature Demand, Engineering Velocity
-
-### Delivery Ops (v2)
-Resource Utilization, Project Status, Time Tracking
-
-### Cross-Functional (v2)
-Executive Summary, Regional Performance, Product Line P&L
-
-## Plugin Structure
+In Claude Desktop / Cowork:
 
 ```
-VISTA/
-  .claude-plugin/
-    plugin.json
-  skills/
-    vista/
-      SKILL.md                        # Main skill logic (report layouts, triggers)
-      references/
-        engineering-visibility.md     # JQL patterns, team/project mapping, layouts
-        vista-data-dictionary.md      # ClickHouse + Elasticsearch schema + query templates
-        cascade-kpi-mysql.md          # MySQL Cascade KPI queries + GSM framework
-        chart-templates.md            # React + HTML chart templates
-        data-catalog-schema.md        # Notion catalog schema snapshot
-  README.md
-  CLAUDE.md
-  .gitignore
+/plugin install Percona-Lab/VISTA@v2-beta
 ```
 
-## Part of the Alpine Toolkit
+Or via the claude-plugins marketplace once `vista-beta` is listed:
 
-IBEX | PACK | MYNAH | BINER | SHERPA | **VISTA** | CAIRN | ECHO
+```
+/plugin install vista-beta
+```
+
+Then restart Claude Desktop.
+
+## Coexistence with stable Vista
+
+If you have the stable `vista` plugin installed, **both can run side by side**. The beta plugin is registered as `vista-beta` with skill name `vista-beta`, so:
+
+- `/vista` — runs stable Vista (current production reports).
+- `/vista-beta` — runs the beta pipeline.
+
+State is kept separate:
+- Memory: `vista_theme_preference` (stable) vs `vista_beta_theme_preference` (beta).
+- Artifact identifiers: `vista-{slug}` vs `vista-beta-{slug}`.
+- MCP connectors (Atlassian, Notion, Slack, ClickHouse, Elasticsearch, ServiceNow, Clari) are user-level and shared by both plugins — no duplication needed.
+
+## Quick start
+
+After install + Desktop restart, in Cowork:
+
+```
+/vista-beta Show me the MySQL Cascade report
+/vista-beta What's the MySQL team working on?
+/vista-beta How are MySQL downloads trending month over month?
+```
+
+The first response pins a Percona-branded HTML artifact in the right pane with pin + download icons. Hover any chart to see tooltips; the download icon supports "Save as PDF" with a print-friendly stylesheet.
+
+## What's in this repo (beta branch)
+
+```
+.claude-plugin/plugin.json             ← Plugin manifest, name=vista-beta
+skills/vista-beta/SKILL.md             ← Skill entry point
+skills/vista-beta/references/
+  brand.md                             ← Token catalog, accent table, render contract
+  vista-primitives.html                ← Canonical HTML primitives (the design system)
+  vista-primitives.jsx                 ← JSX twin (reference / direct consumption only)
+  chart-templates.md                   ← Chart selection + per-report quick reference
+  engineering-visibility.md            ← Team Status / Sprint / Comms layouts
+  cascade-kpi-mysql.md                 ← MySQL Cascade Report definition (anchor + 3 supporting)
+  vista-data-dictionary.md             ← ClickHouse + Elasticsearch schema reference
+  data-catalog-schema.md               ← Notion data catalog schema
+```
+
+## Marketplace submission
+
+To list `vista-beta` in the claude-plugins marketplace, add a single entry to the marketplace's `plugins[]` array (PR against your marketplace repo):
+
+```json
+{
+  "name": "vista-beta",
+  "displayName": "VISTA Beta",
+  "description": "VISTA Beta — Percona-branded business analysis reports with full HTML artifact pipeline. Coexists with stable Vista.",
+  "repository": "https://github.com/Percona-Lab/VISTA",
+  "branch": "v2-beta",
+  "version": "2.0.0-beta.1",
+  "author": "Percona Lab",
+  "tags": ["analytics", "percona", "beta"]
+}
+```
+
+## Reporting issues
+
+File issues against this repo and tag with `v2-beta`. Or ping Dennis Kittrell directly.
+
+## Roadmap to v2 stable
+
+- **v2.0.0-beta.1** — initial release (this commit).
+- **v2.0.0-beta.N** — bug fixes, additional chart primitives as needed.
+- **v2.0.0** — graduation. At graduation, stable `vista` bumps to 2.0.0 with this codebase, and `vista-beta` either retires or stays as a perma-beta channel for future experiments.
+
+## License
+
+MIT (same as stable Vista).

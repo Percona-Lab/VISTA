@@ -1,12 +1,34 @@
 ---
-name: vista
+name: vista-beta
 description: |
-  VISTA -- Visualized Intelligence from Sources, Trends & Analysis. Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill when the user asks for a "report", "analysis", "dashboard", "chart", "trend", "breakdown", "metrics", "KPI", or any request to visualize or summarize business data. Also trigger on: "show me", "how is [metric] trending", "compare", "top N", "what does our [pipeline/revenue/adoption/churn] look like". Trigger when the user references the data catalog, any source system (Salesforce, ServiceNow, Jira, telemetry, downloads, GitHub, Clickhouse, Clari), or any business domain (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity). Also trigger on engineering visibility queries: "what is [team] working on", "what shipped", "team status", "blockers", "dependencies", "workload", "capacity", "how loaded", "highlights", "risks", "wins", "red flags", "what should I know", "what's going on with [team]", "summarize this week".
+  VISTA Beta -- Visualized Intelligence from Sources, Trends & Analysis (rebrand pipeline). Runs cross-functional business analysis reports with visual charts for Percona teams (Product, Sales, CS, Engineering, Delivery Ops, Marketing, BDR, SE, Community). MANDATORY TRIGGERS: Use this skill ONLY when the user invokes it explicitly via "/vista-beta" or asks for "vista beta", the "beta" / "v2" report, or a Percona-branded report (Percona wordmark in header, dark theme, full HTML artifact pipeline with hover tooltips). Stable trigger phrases ("show me", "report", "analysis", etc.) without the beta qualifier should route to the stable `vista` skill if installed; only respond when the user's intent is unambiguously the beta pipeline. Within a beta-scoped request, accept the same content triggers: "show me", "report", "analysis", "dashboard", "chart", "trend", "metrics", "KPI", references to data sources (Salesforce, ServiceNow, Jira, ClickHouse, Elasticsearch, Slack, Notion, Clari), business domains (pipeline, bookings, renewals, support tickets, downloads, telemetry, engineering velocity), and engineering visibility queries ("what is [team] working on", "what shipped", "team status", "blockers", "highlights", "risks", "summarize this week").
 ---
 
-# VISTA -- Visualized Intelligence from Sources, Trends & Analysis
+# VISTA Beta -- Visualized Intelligence from Sources, Trends & Analysis
+
+> **Beta channel.** This is the v2.0 beta of Vista. Differs from the stable `vista` skill by delivering reports as Percona-branded HTML artifacts (dark theme, full design system, hover tooltips, brand SVGs, print-friendly PDFs) instead of raw JSX/HTML. Coexists with `vista` — both can be installed; users invoke `/vista` for stable, `/vista-beta` for this pipeline.
 
 You are a business analyst for Percona. You generate cross-functional reports with visual charts from Percona's data catalog. Every report should be data-driven, visually clear, and actionable.
+
+## Visual identity (read first)
+
+Every Vista report ships as a single **HTML artifact** delivered via Cowork's artifact tool — that's the only path that's pinnable + downloadable in this Cowork build. The render contract is fixed:
+
+1. **`Read` `references/vista-primitives.html` in full**, then paste the entire block (everything between `BEGIN VISTA HTML PRIMITIVES` and `END VISTA HTML PRIMITIVES`) verbatim into the `<head>` of your report. Do not summarize, abridge, "clean up", or substitute. The `<style id="vista-tokens">` block + `<script id="vista-renderer">` block together are the design system.
+2. **Wrap the body** as `<body class="vista-report" data-theme="dark" data-accent="mysql">`. Switch `data-accent` per the product (see `references/brand.md` for the accent table). Default theme is dark.
+3. **Use only the documented classes + `Vista.*` chart functions** for shell + charts:
+   - Shell HTML strings via `Vista.header(...)` and `Vista.footer(...)`.
+   - KPIs: `<div class="vista-kpi-grid vista-kpi-grid--cN"><div class="vista-kpi vista-kpi--headline">...</div>...</div>`.
+   - Status: `<div class="vista-banner vista-banner--good|warning|danger">`.
+   - Callouts: `<aside class="vista-callout vista-callout--warning|action">`.
+   - Charts: `Vista.renderTrendLine(elId, {...})`, `Vista.renderStackedHBar`, `Vista.renderDonut`, `Vista.renderVersionBars` — invoked from a `<script>` at the end of `<body>`, populating placeholder `<div id="...">` elements.
+4. **No hex literals in report code.** Reference tokens by name (`"--vista-accent"`, `"--vista-text-muted"`, etc.) when passing colors to chart functions; the renderer resolves them at draw time. Custom CSS, if needed, must use `var(--vista-...)`.
+
+Full token catalog, accent table, and acceptance checks live in `references/brand.md`. Per-report layout rules live in `references/engineering-visibility.md` and `references/cascade-kpi-mysql.md`. Chart selection guide lives in `references/chart-templates.md`.
+
+**Theme stickiness**: dark default. When the user requests `light` / `dark`, persist via `pack memory_update` (key `vista_beta_theme_preference`); read on next request and set the matching `data-theme` on `<body>`.
+
+**JSX artifacts (`vista-primitives.jsx`)** are still maintained for completeness and for users who want to consume the JSX directly (e.g. embed in a React app), but `.jsx` files saved to `outputs/` are NOT pinnable in Cowork's UI. **Do not deliver a JSX file as the primary artifact.** Always deliver the HTML artifact via Cowork's artifact tool.
 
 ## FIRST: Check Tool Availability
 
@@ -225,7 +247,7 @@ These are the standard reports VISTA can generate. Users can request any of thes
 22. **Product Line P&L** -- Revenue, cost, margin by product family. Waterfall chart.
 
 ### Goal Tracking
-28. **Cascade KPI Tracker** -- Track a Cascade KPI against its target with on-track/off-track status, progress bar, pace calculation, and trend chart. Uses GSM framework. See `references/cascade-kpi-mysql.md` for MySQL KPI definition.
+28. **MySQL Cascade Report** -- Track the MySQL Cascade: one anchor signal (Monthly Active PS Instances vs target) plus three supporting signals (PXC Clusters floor, Operator-Deployed MySQL, PS+PXB Co-install). Each renders status, KPI tiles, and a trend chart. Uses GSM framework on the anchor. See `references/cascade-kpi-mysql.md` for the full signal definitions.
 
 ### Engineering Visibility
 23. **Team Status Dashboard** -- Active Jira issues by product team, grouped by epic/initiative, with status distribution and blockers highlighted. Stacked bar + table.
@@ -330,62 +352,26 @@ When generating Engineering Visibility reports:
 9. Always show data source, sprint name, and date range in the report header
 9. Default time range: resolve actual sprint dates from Jira (see Sprint Data section). Fall back to last 14 days only if sprint data is unavailable.
 
-### Visualization Requirements
+### Visualization requirements
 
-**EVERY VISTA report MUST use the same visual style — Engineering Visibility, Business Analytics, Pipeline, Downloads, Telemetry, or any other report type. ALL reports must look consistent. There are NO exceptions.**
-
-**MANDATORY dark theme** — never use white or light backgrounds:
-- Page: `bg-gray-950` (#0a1628) with `text-gray-100`
-- Cards: `bg-gray-900 rounded-xl border border-gray-800`
-- Tables: `bg-gray-900` with `border-gray-800`
-- Charts: dark grid lines (`#1f2937`), light axis text (`#9ca3af`)
-
-**STRICT layouts — every engineering report MUST follow the exact structure for its report type. Do NOT rearrange, rename, or skip sections. Pick the layout that matches the report type:**
-
----
+All visual styling flows through `references/vista-primitives.jsx` (see "Visual identity" above). The per-report layouts below describe **structure** (which primitives, which order, which data) — never colors, fonts, or class strings.
 
 #### Layout A: Team Status Dashboard (#23) — Active Work
 
 Use this layout for: "What's the team working on?", "Show me engineering status", "Any blockers?"
 
-1. **Header bar** — `VISTA ENGINEERING REPORT` label (small caps, orange accent), report title (h1, white), subtitle with date + projects + source:
-   ```
-   VISTA ENGINEERING REPORT
-   {Team}: Team Status
-   As of {date} | Projects: {KEYS} | Source: Jira (perconadev.atlassian.net)
-   ```
+`accent` set to the team's product (`mysql`, `postgresql`, `mongodb`, `kubernetes`, etc.); cross-team views omit it.
 
-2. **KPI row** — exactly 6 cards in a single row, always in this order:
-   - Total Active (green number) — all non-Done/Closed issues
-   - In Progress (blue number)
-   - In Review / QA (amber number)
-   - Blocked / Waiting (red number)
-   - Unassigned (gray number)
-   - Recently Completed (teal number) — Done/Closed in last 14 days or last sprint
-   Use `grid grid-cols-6 gap-3`. Each card: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`.
-
-3. **Sprint Goals** (if available from `customfield_10020[].goal`) — colored tag badges showing the current sprint objectives. Skip if no sprint goals exist.
-
-4. **Status Distribution chart** — horizontal stacked bar chart. One bar per project key, stacked by status group (To Do=gray, In Progress=blue, In Review=amber, Pending Release=green, Blocked=red). Sorted by total count descending.
-
-5. **Priority Breakdown + Top Assignees** — two charts side by side in `grid grid-cols-2 gap-4`:
-   - Left: **Priority Distribution** — doughnut chart (Urgent=red, Critical=orange, High=amber, Medium=green, Low=blue)
-   - Right: **Workload by Assignee** — horizontal bar chart, one bar per engineer, stacked by issue type, sorted by total descending. Include "Unassigned" bar at bottom.
-
-6. **By Epic / Initiative** — grouped cards or collapsible sections. Each epic shows: epic name, issue count, status breakdown mini-bar. "Ungrouped / Standalone" section at bottom. Sort by issue count descending.
-
-7. **Active Issues table** — full list of active items. Columns: Key (linked to Jira), Type (badge), Priority (colored), Summary, Assignee, Status, Epic/Parent. Use `bg-gray-900` table with `border-gray-800`.
-
-8. **Recently Completed** — last 10-20 items completed (Done/Closed) in the sprint or last 14 days. Columns: Key, Type, Summary, Assignee. Checkmark icon prefix.
-
-9. **Key Findings** — 3-5 auto-generated bullets:
-   - Total active and trend vs. previous period if available
-   - Unassigned percentage (flag if > 40%)
-   - Top epic by issue count
-   - Any Blocker/Urgent items (always surface these)
-   - Recently completed count (momentum indicator)
-
-10. **Footer** — `Generated by VISTA | {date} | {data source}`
+1. **`<ReportHeader>`** — `kicker="{TEAM} · ENGINEERING VISIBILITY"`, `title="Team Status"`, `sub="As of {date} · Projects: {KEYS} · Source: Jira"`
+2. **`<KPIGrid columns={6}>`** — 6 tiles in this order: Total Active (headline), In Progress, In Review/QA, Blocked, Unassigned, Recently Completed (last sprint or 14d).
+3. **Sprint goals** — if `customfield_10020[].goal` present: row of small `<Card>` blocks listing each goal. Skip if absent.
+4. **Status distribution** — `<StackedHBar>`, one bar per project key, stacked by status group (To Do, In Progress, In Review, Pending Release, Blocked). Sort by total desc.
+5. **Priority + Top assignees** — `grid grid-cols-2 gap-4`: left `<Donut>` for priority; right `<StackedHBar>` workload by assignee stacked by issue type.
+6. **By epic / initiative** — `<Card>` per epic with name + count + a small inline `<StackedHBar height={28}>` of statuses. Ungrouped at bottom.
+7. **Active issues table** — `<Card title="Active Issues">` containing a plain `<table>` styled with `var(--vista-border)`. Columns: Key (linked), Type, Priority, Summary, Assignee, Status, Epic.
+8. **Recently completed** — last 10–20 Done/Closed items as a similar table.
+9. **`<Callout variant="insight">`** — auto-generated key findings (3–5 bullets): total + trend, unassigned %, top epic, any Blocker/Urgent items, momentum.
+10. **`<ReportFooter>`** — `source="Source: Jira (perconadev.atlassian.net) · Fetched {now} UTC"`
 
 ---
 
@@ -393,127 +379,80 @@ Use this layout for: "What's the team working on?", "Show me engineering status"
 
 Use this layout for: "What shipped this week?", "What did X ship last sprint?", cross-team communication feeds.
 
-1. **Header bar** — `VISTA ENGINEERING REPORT` label (small caps, orange accent), report title (h1, white), subtitle with date range + projects + source:
-   ```
-   VISTA ENGINEERING REPORT
-   {Team}: Sprint {Name}
-   {Start Date} - {End Date} | Projects: {KEYS} | Source: Jira (perconadev.atlassian.net, queried: {date})
-   ```
+`accent` set to the team's product when single-team; omit for cross-team feeds.
 
-2. **KPI row** — exactly 6 cards in a single row, always in this order:
-   - Total Shipped (green number)
-   - Bugs Fixed (red number)
-   - New Features (blue number)
-   - Improvements (teal number)
-   - Maintenance/Tasks (gray number)
-   - Contributors (orange number)
-   Use `grid grid-cols-6 gap-3`. Each card: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`.
-
-3. **Sprint Goals** (if available from `customfield_10020[].goal`) — colored tag badges showing the sprint objectives. Skip this section entirely if no sprint goals exist.
-
-4. **Volume by Project chart** — horizontal stacked bar chart. One bar per project key, stacked by issue type (Bug=red, Improvement=green, Task=blue, New Feature=purple). Sorted by total count descending.
-
-5. **Issue Type + Contributor charts** — two charts side by side in `grid grid-cols-2 gap-4`:
-   - Left: **Issue Type Distribution** — doughnut chart with count labels
-   - Right: **Contributor Breakdown** — horizontal bar chart, one bar per engineer, stacked by issue type, sorted by total descending
-
-6. **Key Initiatives / Releases** (if applicable) — cards with team-colored left border listing releases shipped or major milestones this sprint. Include Fix Versions when available.
-
-7. **Detail table** — full list of shipped items. Columns: Key (linked to Jira), Type (badge), Summary, Assignee, Status. Grouped by project key. Use `bg-gray-900` table with `border-gray-800`.
-
-8. **Key Findings** — 3-5 auto-generated bullets summarizing the sprint
-
-9. **Footer** — `Generated by VISTA | {date} | {data source}`
-
-**Technical:**
-- Use Recharts for React (Cowork). Import ALL components including `Legend`.
-- **Horizontal bar charts with names**: ALWAYS set `YAxis width={150}` minimum to prevent name truncation. Use `layout="vertical"`, dynamic height `Math.max(300, data.length * 45)`.
-- Use Chart.js for HTML. See `references/chart-templates.md` for patterns.
-- See `references/engineering-visibility.md` for detailed blueprints and wireframes.
-- Percona brand colors: green primary (#1A4D2E), orange accent (#FF6B35)
+1. **`<ReportHeader>`** — `kicker="{TEAM} · SPRINT DELIVERY"`, `title="Sprint {name}"`, `sub="{start} – {end} · Projects: {KEYS} · Source: Jira"`
+2. **`<KPIGrid columns={6}>`** — Total Shipped (headline), Bugs Fixed, New Features, Improvements, Maintenance/Tasks, Contributors.
+3. **Sprint goals** — same rule as Layout A.
+4. **Volume by project** — `<StackedHBar>` one bar per project key, stacked by issue type.
+5. **Issue type + Contributors** — `grid grid-cols-2 gap-4`: left `<Donut>` of issue types; right `<StackedHBar>` of contributors stacked by type.
+6. **Key initiatives / releases** — `<Card>` blocks listing Fix Versions and milestones shipped this sprint.
+7. **Detail table** — `<Card title="Shipped This Sprint">` with table columns: Key, Type, Summary, Assignee, Status. Grouped by project key.
+8. **`<Callout variant="insight">`** — sprint summary bullets.
+9. **`<ReportFooter>`**.
 
 ---
 
-#### Layout C: Cascade KPI Tracker (#28) — Goal Tracking
+#### Layout C: MySQL Cascade Report (#28) — anchor + 3 supporting signals
 
-Use this layout for: "Show me the MySQL Cascade KPI", "MySQL KPI", "Are we on track?", "PS instances KPI", "cascade metric", or any request to track a Cascade KPI against its target. **Read `references/cascade-kpi-mysql.md` first** — it contains the GSM framework, baseline, target, queries, and on-track calculation.
+Use this layout for: "Show me the MySQL Cascade report", "MySQL Cascade", "MySQL adoption report", "Are we on track?", "PS instances KPI", or any MySQL Cascade tracking. **Read `references/cascade-kpi-mysql.md` first** — it defines all four signals (anchor + 3 supporting), their baselines, targets, queries, and on-track logic.
 
-**This layout is RIGID. Produce the EXACT same structure every time. No rearranging, no renaming, no creative variations.**
+`accent="mysql"` for MySQL Cascade. Layout is RIGID — same structure every time. Render all four signals in every report.
 
-1. **Status banner** — full-width bar at the top showing the on-track status. This is THE most important element:
-   - **ON TRACK** (green bg `#065f46`, white text): actual >= required pace
-   - **AT RISK** (amber bg `#92400e`, white text): actual within 2% of required pace
-   - **OFF TRACK** (red bg `#991b1b`, white text): actual below required pace by >2%
-   
-   Format: `{STATUS} — {actual} instances vs {required_at_pace} required ({+/-difference})`
+**Section A: Header + anchor signal (Monthly Active PS Instances)**
 
-2. **Header** — `VISTA TELEMETRY REPORT` label (small caps, orange accent `#FF6B35`), report title (h1, white), subtitle:
-   ```
-   VISTA TELEMETRY REPORT
-   MySQL Cascade KPI
-   Tracking Period: {start} – {end} | Metric: pillar_db_instance_id | Source: ClickHouse (telemetryd)
-   ```
+1. `<ReportHeader kicker="MYSQL · CASCADE" title="MySQL Adoption — Anchor + Supporting Signals" sub="Tracking Jan 1 – Dec 31, 2026 · Source: ClickHouse"/>`
+2. `<StatusBanner status>` for the anchor — `good` if ≥ pace, `warning` within 2%, `danger` > 2% below. Body: `Anchor (Monthly Active PS): {STATUS} — {actual} vs {required_at_pace} required ({±delta})`.
+3. **Progress strip** — thin `<Card>` with Baseline / Current / Target markers; fill = % of growth achieved; pace-marker line at expected position.
+4. `<KPIGrid columns={5}>` — Current (headline, status-colored via `valueColor`), Baseline (Jan 26), Target (Dec 26), Growth Needed, Monthly Pace Required.
+5. **Anchor trend** — `<Card title="Monthly Active PS Instances vs target pace">` containing `<TrendLine>` with three series: `actual` (area, accent), `target` (dashed, muted), `projected` (dashed, subtle). `refLines` = baseline + target.
+6. **Secondary anchor metrics** — `grid-cols-2`: left `<Card>` "8.4 Adoption" with big number + ten-month delta; right `<Card>` with `<VersionBars>` for PS version distribution.
 
-3. **Progress bar** — visual bar showing baseline → current → target:
-   - Full width bar with three markers: Baseline (left), Current (filled position), Target (right)
-   - Show percentage complete: `{pct}% of target growth achieved`
-   - Bar color matches status (green/amber/red)
-   - Labels: `Baseline: {baseline}` on left, `Target: {target}` on right, `Current: {actual}` at fill point
+**Section B: three supporting signals — repeating sub-section**
 
-4. **KPI row** — exactly 5 cards in a single row, always in this order:
-   - **Current** (large number, status-colored): trailing-12m unique instances
-   - **Baseline** (gray number): starting point value
-   - **Target** (white number): end-of-period goal
-   - **Growth Needed** (white number): remaining instances to add
-   - **Monthly Pace Required** (white number): instances/month needed from now to hit target
-   Use `grid grid-cols-5 gap-3`. Each card: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`.
+Each supporting signal is a self-contained block. Use `--vista-chart-2` (blue) as the primary series — the accent stays reserved for the anchor.
 
-5. **Trend chart** — ComposedChart with:
-   - **Actual line** (solid, `#4CAF50` green, dots): monthly active instances (complete months only)
-   - **Target line** (dashed, `#FF6B35` orange): linear interpolation from baseline to target
-   - **Projected line** (dotted, `#6b7280` gray): linear projection from recent trend to Dec
-   - X-axis: months (Jan 2026 – Dec 2026)
-   - Y-axis: instance count
-   - Flag incomplete months with a `ReferenceLine` or annotation
-   - Include `ReferenceLine` for baseline and target values
+7. **Supporting #1: Active PXC Clusters (floor target)**
+   - Sub-header: kicker `SUPPORTING SIGNAL · 1 OF 3`, title `Active PXC Clusters`, one-line "why" pointing at HA-tier customer retention.
+   - `<KPIGrid columns={4}>`: Current ({month}, headline, status-colored), Baseline, Target (`"≥ 1,000"`), Status label.
+   - `<Card title="Monthly trend"><TrendLine data series=[{key:'clusters', area:true, color:'var(--vista-chart-2)'}] refLines=[{y:1000,label:'Floor: 1,000'},{y:850,label:'Critical: 850',color:'var(--vista-danger)'}] height={220}/></Card>`
+   - **No "target pace" series** — it's a floor, not a growth target.
+   - Status: ≥1,000 ON TRACK; 850–999 BEHIND; <850 CRITICAL.
+   - Pair with a small `<Card title="Diagnostic: PXC instances (not tracked)">` showing instance trend.
 
-6. **Secondary metrics** — `grid grid-cols-2 gap-4`:
-   - Left: **8.4 Adoption Rate** — single big number + trend (e.g., "26.5% — up from 5.9% ten months ago"). Show as a mini area chart or just the number with delta.
-   - Right: **Version Distribution** — horizontal bar chart showing top version groups (8.4.x, 8.0.x, 5.7.x, Other) with instance counts
+8. **Supporting #2: Active Operator-Deployed MySQL Instances**
+   - Sub-header: `SUPPORTING SIGNAL · 2 OF 3`, `Operator-Deployed MySQL`, "Cloud-native momentum across PS Operator + PXC Operator."
+   - `<KPIGrid columns={4}>`: Current (headline, status-colored), Baseline (2,692), Target (9,000), Status.
+   - `<TrendLine>` with two series stacked visually: `ps_op` (area, chart-2), `pxc_op` (area, chart-4). RefLines = baseline + target.
+   - `<Callout variant="warning">` flagging the **PXC Operator proxy caveat** ("PXC Operator count proxied via RHEL UBI base image until distinct telemetry lands").
 
-7. **Supporting Signal: PXC (Percona XtraDB Cluster)** — trend-tracking panel beneath the PS anchor. **No status badge** — PXC has no Cascade target. Structure:
-   - Section header: `Supporting Signal: PXC (Percona XtraDB Cluster)` (h2, gray subtext "One level down from the PS anchor — no Cascade target, trend tracking only")
-   - **Two KPI tiles** side by side (`grid grid-cols-2 gap-3`): **Active Instances** (trailing 12m, `uniqExact(pillar_db_instance_id)`) and **Active Clusters** (trailing 12m, `uniqExact(tupleElement(metric, 2))` filtered to `db_replication_id`). Same card styling as the PS KPI row: `bg-gray-900 rounded-xl border border-gray-800 p-4 text-center`. Use the neutral white/gray number color (`#f3f4f6`) — NOT the status-colored green/amber/red used on PS.
-   - **Monthly trend** line chart — same visual treatment as the PS monthly trend (solid line, `#4CAF50` green, dots, dark theme axes). Single series, no target line, no projected line.
-   - **Data quality note** directly below the monthly trend: `PXC monthly active is subject to the same Jan 24 2026 pipeline disruption affecting PS. Trailing 12-month cumulative remains reliable.`
-   - **Version distribution** bar chart — horizontal bars, top 10 versions, same styling as PS version distribution. Colors: 8.0.x → `#FF6B35`, 8.4.x → `#4CAF50`, other → `#6b7280`.
-   - Queries and expected sanity values live in `references/cascade-kpi-mysql.md` under "Supporting Signal: PXC".
+9. **Supporting #3: PACKAGE PS with PXB co-installed**
+   - Sub-header: `SUPPORTING SIGNAL · 3 OF 3`, `PS + PXB Co-install (commercial-intent proxy)`, one-line "strongest behavioral proxy for buying intent."
+   - `<KPIGrid columns={4}>`: Current (headline, status-colored), Baseline (13,142), Target (18,000), Status.
+   - `<TrendLine>` single series (`actual`, area, chart-2). RefLines = baseline + target.
+   - **Watch metric (alongside the absolute count)**: small `<Card>` showing the PXB-in-PACKAGE-PS ratio (`with_pxb / package_total`). Currently ~28–32%. If the latest ratio is below 25%, surface a `<Callout variant="warning">` — that's an early signal growth is concentrating in non-monetizable segments even if the absolute count is on track.
+   - Methodology note: PXB co-install is detected via the `installed_packages` key in the PS row's `metrics` array (`LIKE '%percona-xtrabackup%'`), not a cross-product-family join. Counter is `uniqExact(host_instance_id)`. Filter is `pillar_deployment = 'PACKAGE'`.
 
-8. **GSM Framework card** — `bg-gray-900 rounded-xl border border-gray-800 p-5` with three rows:
-   - **Goal**: {goal text}
-   - **Signal**: {signal text}
-   - **Measure**: {measure text}
-   Use left-border accent (`border-l-4 border-l-[#FF6B35]`). GSM applies to the PS anchor only — do not restate for PXC.
+**Section C: tail**
 
-9. **Data quality notes** — if any months have incomplete data, show a warning banner:
-   `⚠ {months} excluded due to incomplete telemetry ingestion. Last reliable month: {month}.`
-
-10. **Key findings** — 3-5 auto-generated bullets:
-    - On-track status with specific numbers
-    - Month-over-month change in active instances
-    - 8.4 adoption acceleration/deceleration
-    - 8.0 EOL migration progress
-    - Any data quality flags
-
-11. **Footer** — `Generated by VISTA | {date} | Source: ClickHouse telemetryd | Metric: uniqExact(pillar_db_instance_id)`
+10. `<Card title="GSM Framework">` — anchor only. Goal / Signal / Measure rows.
+11. `<Callout variant="warning" label="Data quality">` if any months were excluded.
+12. `<Callout variant="insight">` — 4–6 bullets:
+    - Anchor status with numbers.
+    - One bullet per supporting signal (status + last-month delta).
+    - Top cross-signal observation (e.g. "operator growth is the standout while PXC clusters are bumping the floor").
+    - Top risk going into next month.
+13. `<ReportFooter source="Source: ClickHouse · telemetryd · Queried {now} UTC"/>`
 
 ---
 
-### Natural Language Triggers for Cascade KPIs
-- "Show me the MySQL Cascade KPI" -> Cascade KPI Tracker (#28) using `references/cascade-kpi-mysql.md`
-- "MySQL KPI" / "PS instances KPI" -> Cascade KPI Tracker (#28)
-- "Are we on track?" (in context of MySQL/telemetry) -> Cascade KPI Tracker (#28)
-- "Cascade metric" / "cascade dashboard" -> Cascade KPI Tracker (#28)
+### Natural Language Triggers for the MySQL Cascade Report
+- "Show me the MySQL Cascade report" -> MySQL Cascade Report (#28) using `references/cascade-kpi-mysql.md` *(canonical phrasing)*
+- "MySQL Cascade" / "MySQL adoption report" / "MySQL adoption cascade" -> MySQL Cascade Report (#28)
+- "PS instances KPI" / "MySQL KPI" -> MySQL Cascade Report (#28)
+- "Are we on track?" (in context of MySQL/telemetry) -> MySQL Cascade Report (#28)
+- "Cascade dashboard" / "cascade metric" -> MySQL Cascade Report (#28)
+- Legacy phrasing "MySQL Cascade KPI" still routes here for backwards compat — the report covers the anchor *plus* three supporting signals, so prefer "report" in new docs.
 
 ### Natural Language Triggers for Engineering Visibility
 - "What's the MySQL team working on?" -> Team Status Dashboard (#23) filtered to MySQL
@@ -548,55 +487,73 @@ When the user requests a report:
    - Recommended actions (if applicable)
 7. **After every report**, ask: "Would you like me to generate a shareable HTML version of this report?" This gives the user an easy path to share via email or browser without needing to know about the HTML option.
 
-## Chart Output Rules
+## Chart output rules
 
-VISTA produces two output formats. Choose based on context:
+Vista emits a single HTML artifact per report. The render contract is in **Visual identity** at the top of this file; the canonical implementation is `references/vista-primitives.html`.
 
-### React (.jsx) -- Default for Cowork sessions
-Use when the user is in a Cowork/Claude Desktop session. Interactive, hover tooltips, responsive.
-
-```jsx
-// Standard imports available:
-import { useState } from "react";
-import {
-  LineChart, BarChart, PieChart, AreaChart, RadarChart,
-  FunnelChart, Treemap, ScatterChart, ComposedChart,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  Line, Bar, Pie, Area, Radar, Funnel, Scatter,
-  Cell, ResponsiveContainer, PolarGrid, PolarAngleAxis
-} from "recharts";
-import _ from "lodash";
-```
-
-**React chart rules:**
-- Always wrap charts in `<ResponsiveContainer width="100%" height={400}>`
-- Use Percona brand palette: `["#1A4D2E", "#FF6B35", "#2196F3", "#4CAF50", "#FF9800", "#9C27B0", "#F44336", "#00BCD4"]`
-- Include a descriptive title as an `<h2>` above the chart
-- Add a data source footnote below the chart
-- Use Tailwind utility classes for layout (no custom CSS)
-- Include a summary stats row above or below the chart when applicable
-- Default export the component with no required props
-
-### HTML (.html) -- For sharing outside Claude
-Use when the user needs to share the report, email it, or open it in a browser.
+**Skeleton every report follows:**
 
 ```html
-<!-- Use Chart.js from CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>VISTA · {Report Title}</title>
+
+  <!-- === BEGIN VISTA HTML PRIMITIVES (verbatim from references/vista-primitives.html) === -->
+  <!--   Paste the entire block (style#vista-tokens + script#vista-renderer) here. -->
+  <!-- === END VISTA HTML PRIMITIVES === -->
+</head>
+
+<body class="vista-report" data-theme="dark" data-accent="mysql">
+  <div class="vista-container">
+    <div id="hdr"></div>
+
+    <main class="vista-main">
+      <!-- status banner, KPI grid, charts, callouts, etc. -->
+      <div class="vista-banner vista-banner--good">
+        <span class="vista-banner-dot"></span>
+        <div>{STATUS} — {actual} vs {required} ({delta})</div>
+      </div>
+
+      <div class="vista-card">
+        <div class="vista-card-title">Monthly Trend</div>
+        <div id="chart-trend"></div>
+      </div>
+    </main>
+
+    <div id="ftr"></div>
+  </div>
+
+  <script>
+    document.getElementById("hdr").innerHTML = Vista.header({
+      kicker: "MYSQL · CASCADE", title: "MySQL Adoption — Anchor + Supporting Signals",
+      sub: "Tracking Jan 1 – Dec 31, 2026 · Source: ClickHouse", theme: "dark"
+    });
+    document.getElementById("ftr").innerHTML = Vista.footer({
+      source: "Source: ClickHouse · telemetryd · Queried {now} UTC", theme: "dark"
+    });
+    Vista.renderTrendLine("chart-trend", {
+      data: [/* ... */],
+      series: [
+        { key: "actual", name: "Active", area: true, color: "--vista-accent" },
+        { key: "target", name: "Target pace", dashed: true, color: "--vista-text-muted" }
+      ],
+      height: 320,
+      refLines: [{ y: 57912, label: "Baseline" }, { y: 100000, label: "Target", color: "--vista-accent" }]
+    });
+  </script>
+</body>
+</html>
 ```
 
-**HTML chart rules:**
-- Single self-contained file, all JS/CSS inline
-- Same Percona brand palette
-- Include print-friendly styles (`@media print`)
-- Add a header with report title, date, and data source
-- Responsive layout that works on desktop and mobile
+**Chart selection** — see `references/chart-templates.md`. The four primitives cover ~95% of cases:
+- `Vista.renderStackedHBar` — status / priority / volume-by-team / contributor breakdowns
+- `Vista.renderTrendLine` — monthly/weekly trends, KPI progress, supports refLines + area
+- `Vista.renderDonut` — categoricals with 5–7 categories
+- `Vista.renderVersionBars` — single-series ranked bars; always uses `--vista-accent`
 
-### When to use which format:
-- User is chatting in Cowork/Claude Desktop -> React (.jsx)
-- User says "share", "email", "export", "PDF" -> HTML (.html)
-- User asks for both -> Generate both files
-- When in doubt -> React (.jsx) first, offer HTML as follow-up
+**JSX is no longer the primary path.** Reports go out as HTML artifacts. If a user explicitly asks for the JSX source, point them at the `vista-primitives.jsx` reference for direct consumption — but the deliverable is the HTML artifact.
 
 ## Data Processing Guidelines
 
@@ -634,10 +591,97 @@ Use when the user needs to share the report, email it, or open it in a browser.
 - Region scope (global, specific region?)
 - Audience (who will see this report?)
 
-## File Output
+## Output & Pinning convention
 
-Save all generated reports to the workspace folder:
-- React charts: `{report-name}-{date}.jsx`
-- HTML charts: `{report-name}-{date}.html`
+**Hard rule: every Vista report MUST be delivered as a Cowork artifact, not as a file write.**
 
-Always provide a `computer://` link to the output file.
+Empirical evidence (gathered iteratively): when Vista produces a `.jsx` file via the Write or Bash tools and saves it to `outputs/...jsx`, Cowork shows it as a *file preview* with no pin or download icons — only "Show in Folder". When Vista produces the same content via Cowork's **artifact creation tool** (the same mechanism that produces "Created artifact: <slug>" in the chat), Cowork shows it as a **Live Artifact** with full pin + download UI. Identical bytes, different display, depending solely on which path was used.
+
+### Mandatory delivery path
+
+Use Cowork's HTML artifact creation mechanism. The result must produce "Created artifact: vista-<slug>" in chat with a pinnable, downloadable artifact in the right pane.
+
+**Artifact type: `text/html`.** The full design system is now available as HTML — `references/vista-primitives.html` mirrors the JSX primitives 1:1 (same tokens, same Percona wordmark/logomark SVGs, same chart algorithms, same shell layout). Paste its `BEGIN/END VISTA HTML PRIMITIVES` block verbatim into the `<head>`, then build the report body using the documented classes and `Vista.render*` chart functions (see "Visual identity" above).
+
+**Do not improvise inline HTML or pull a generic Chart.js setup** — that loses the brand. The HTML primitives are the contract.
+
+**Do not save the report to `outputs/...html` via Write/Bash** as the primary deliverable — file-saved HTML isn't pinnable in Cowork's UI either. The artifact-tool path is the *only* path that produces pin + download icons.
+
+### What NOT to do
+
+- **Do not save the report as a file in `outputs/` via the Write tool as the primary deliverable.** The user has been clear: `outputs/`-saved files are not pinnable in Cowork's UI.
+- **Do not save via Bash `cat > file.jsx`.** Same problem.
+- A file copy on disk is fine *as a secondary side effect* if the user explicitly asks ("save a copy to disk too"), but never as a substitute for the artifact.
+
+### Artifact identifier
+
+Use the slug from the filename table below as the artifact identifier. Example: a Cascade report uses identifier `vista-cascade-mysql` (no date suffix — Cowork tracks artifact versions independently).
+
+### Everything else stays the same
+
+The structural rules below still apply: the report MUST be a single self-contained JSX module, with the primitives pasted verbatim, the four-line header comment, and the `export default function App()` shape. Those produce a renderable React artifact; the artifact-tool path is what makes Cowork pin it.
+
+Every Vista artifact MUST follow this exact shape:
+
+### Artifact identifier (and filename if a copy is requested)
+
+- **Cowork artifact identifier**: `vista-beta-{report-slug}` (no date — Cowork tracks versions itself).
+- **Filename if user asks for a disk copy**: `vista-beta-{report-slug}-{YYYY-MM-DD}.jsx`.
+- `{report-slug}` is kebab-case and stable per report type — always the same slug for the same report. Never include the team name or date in the slug itself.
+
+| Report | Slug |
+|---|---|
+| MySQL Cascade Report (#28) | `cascade-mysql` |
+| Team Status (#23) | `team-status-{team}` (e.g. `team-status-mysql`) |
+| Sprint Delivery / Comms feed (#26) | `sprint-delivery-{team}` or `comms-feed` |
+| Cross-Team Dependencies (#24) | `dependencies` |
+| Workload & Capacity (#25) | `capacity-{team}` |
+| Team Highlights & Risks (#27) | `team-highlights` |
+| Download Trends (#13) | `downloads-{product}` |
+| Telemetry Adoption (#14) | `telemetry-{product}` |
+| Pipeline Snapshot (#1) | `pipeline` |
+| Executive Summary (#20) | `exec-summary` |
+
+Examples: `vista-cascade-mysql-2026-04-26.jsx`, `vista-team-status-mongodb-2026-04-26.jsx`.
+
+### Top-of-file header (mandatory, exact shape)
+
+The first 4 lines of every artifact, in this exact format:
+
+```jsx
+// VISTA · {Report Title} — {Subtitle}
+// Generated {YYYY-MM-DD} by VISTA
+// Source: {primary source string}
+// Report ID: vista-beta-{slug}
+```
+
+- Line 1 is the human-readable artifact title. Keep it under 80 chars. Title-case. This is what people will see when they hover the pinned artifact or open it later.
+- Line 4 (`Report ID`) is the stable handle so a fresh regeneration is recognizable as the same report type — pin one, downloads from the next regen still slot logically alongside it.
+
+Honest caveat: I can't guarantee Cowork's pin sidebar will *automatically group* regenerations by Report ID — Cowork's pin UI is keyed on the conversation/artifact in the moment, not on metadata inside the file. But a stable filename + Report ID line means when you scroll the pin sidebar, the related ones are visually adjacent and obvious.
+
+### Default export shape (mandatory)
+
+The last block of the file is always:
+
+```jsx
+export default function App() {
+  return (
+    <VistaReport theme={...} accent={...}>
+      <Report />
+    </VistaReport>
+  );
+}
+```
+
+Cowork recognizes the artifact as a pinnable React component only when there is a single `export default function App()` (or `export default App`) wrapping `<VistaReport>`. Don't rename `App`. Don't multi-export. Don't ship a Report-only file without the App wrapper.
+
+### What this fixes
+
+- **Consistent pin titles** — `// VISTA · MySQL Cascade Report — Anchor + Supporting Signals` is what shows in the pin sidebar, not `cascade-kpi-mysql-2026-04-25`.
+- **Regenerations don't fragment the sidebar** — same slug → Cowork groups them.
+- **Cross-report grouping** — pin tag lets the user filter "all my Cascade reports" or "all my Team Status reports" at a glance.
+
+### Workspace path
+
+Save under the Cowork outputs folder. Always provide a `computer://` link to the output file.
