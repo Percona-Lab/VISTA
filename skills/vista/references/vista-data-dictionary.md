@@ -37,7 +37,9 @@ Single source of truth for how every Percona product maps across all three data 
 | MySQL Vector Capabilities | -- | n/a (not yet released) | n/a | PS (tracked within PS) | MySQL | MVP in development |
 | Percona Server for MongoDB | PSMDB | `mongodb-server` | `psmdb` | PSMDB | MongoDB | Active |
 | Percona Backup for MongoDB | PBM | `mongodb-backup` | n/a | PBM | MongoDB | Active |
+| Percona Search for MongoDB | PS4M | `percona-search-mongodb` | n/a | PS4M | MongoDB | Active |
 | Percona ClusterSync for MongoDB | PCSM | `percona-clustersync-mongodb` | n/a | PCSM | MongoDB | Active |
+| Percona Software for MongoDB Roadmap | PSMDBR | n/a | n/a | PSMDBR | MongoDB | Active |
 | Percona Monitoring and Management | PMM | `pmm` | CH: `pmm_metrics` table | PMM | PMM | Active |
 | Percona Distribution for PostgreSQL | PG | `postgresql` | `postgresql` (CAVEAT: noisy data) | PG, DISTPG | PostgreSQL | Active |
 | Operator for MySQL (PS) | K8SPS | n/a | n/a | K8SPS | Operators | Active |
@@ -60,7 +62,7 @@ Single source of truth for how every Percona product maps across all three data 
 
 | Metric | Source | Owner | Formula | Status | Notes |
 |---|---|---|---|---|---|
-| **Unique active instances** per product | CH: `pillars_telemetry_phase_1` | Product, Strategic | `uniqExact(host_instance_id)` per `product_family` in last 30d | Validated | Primary adoption metric. Radek's MongoDB goal: 60K unique PSMDB instances for 2026 (+20% YoY, was ~49K last year) |
+| **Unique active instances** per product | CH: `pillars_telemetry_phase_1` | Product, Strategic - | `uniqExact(host_instance_id)` per `product_family` in last 30d | Validated | Primary adoption metric. Percona Server for MongoDB goal: 68600 unique PSMDB instances for 2026 (+40% YoY, ~49K in 2025) |
 | **Active MySQL Instances (Cascade Primary KPI)** | CH: `pillars_telemetry_phase_1` | Product | `uniqExact(pillar_db_instance_id)` WHERE `product_family = 'ps'` in last 30d | Proposed | Uses `pillar_db_instance_id` (unique DB instances), NOT `host_instance_id` (unique hosts). Recommended primary KPI for the Cascade goal-setting framework. |
 | **PS 8.4 Version Adoption Rate** | CH: `pillars_telemetry_phase_1` | Product | Count of `pillar_db_instance_id` where `pillar_version LIKE '8.4%'` / total active PS instances * 100 | Proposed | Secondary Cascade KPI. Tracks migration from 8.0 to 8.4 LTS. |
 | **Product downloads** by type/OS/version | ES: `*` | Product | Count of download events per `parsed.product` | Validated | Segmented by: IP, date, country, city, version, OS, CPU arch, cloud provider |
@@ -76,6 +78,7 @@ Single source of truth for how every Percona product maps across all three data 
 | **Pro-builds downloads** | ES: `*` | N/A | Downloads where package name matches `*pro*` | Discontinued | Pro-builds are no longer offered. Historical data only. |
 | **Everest managed clusters** | CH: `everest_telemetry` | N/A | `pxc_count + psmdb_count + pg_count` per Everest instance | Discontinued | Everest is now "Open Everest", independent of Percona. Historical data only. |
 | **Component-level feature activation** | CH: `pillars_telemetry_phase_1` | Product | `uniqExact(host_instance_id)` where `metrics` contains `('active_components', '%file://<component_urn>%')` in last 30d | Validated | Use `percona-dk` to verify the exact `component_*` URN before querying — names do NOT follow a `component_{feature}` pattern (e.g., JS stored programs = `component_js_lang`, NOT `component_mysql_js`). |
+| **Active MongoDB Instances (Cascade Primary KPI)** | CH: `pillars_telemetry_phase_1` | Product - Radoslaw Szulgo | Goal metric is uniqExact(pillar_db_instance_id) — distinct DB instances — not uniqExact(host_instance_id). DB IDs survive container restarts / re-imaging that regenerate host IDs. | Validated | Auxilary metric - 12-month trailing value |
 
 ### Known Data Quality Issues
 
@@ -141,7 +144,7 @@ All download-specific fields are under the `parsed.*` namespace:
 | `mysql-distribution-ps` | ~834K | MySQL distribution (PS variant) |
 | `percona-clustersync-mongodb` | ~700 | Percona ClusterSync for MongoDB |
 | `mongodb-backup` | ~574K | Percona Backup for MongoDB |
-| `mongodb-distribution` | ~193K | MongoDB distribution |
+| `percona-search-mongodb` | 0 | Percona Search for MongoDB |
 | `mysql-distribution-pxc` | ~187K | MySQL distribution (PXC variant) |
 | `postgresql-distribution` | ~78K | PostgreSQL distribution |
 
